@@ -83,7 +83,7 @@ try {
         try {
             $templateUrl = $templateUrl -replace "https://www.github.com/", "$ENV:GITHUB_API_URL/repos/" -replace "https://github.com/", "$ENV:GITHUB_API_URL/repos/"
             Write-Host "Api url $templateUrl"
-            $templateInfo = Invoke-WebRequest -UseBasicParsing -Headers $githubheaders -Uri $templateUrl | ConvertFrom-Json
+            $templateInfo = Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri $templateUrl | ConvertFrom-Json
         }
         catch {
             throw "Could not retrieve the template repository. Error: $($_.Exception.Message)"
@@ -115,7 +115,7 @@ try {
     $archiveUrl = $templateInfo.archive_url.Replace('{archive_format}', 'zipball').replace('{/ref}', "/$templateBranch")
     $tempName = Join-Path $env:TEMP ([Guid]::NewGuid().ToString())
     Write-Host "Archive url $archiveUrl"
-    Invoke-WebRequest -UseBasicParsing -Headers $githubheaders -Uri $archiveUrl -OutFile "$tempName.zip"
+    Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri $archiveUrl -OutFile "$tempName.zip"
     Expand-7zipArchive -Path "$tempName.zip" -DestinationPath $tempName
     Remove-Item -Path "$tempName.zip"
     
