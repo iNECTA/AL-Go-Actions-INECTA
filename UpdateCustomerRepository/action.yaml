@@ -5,7 +5,6 @@ runs:
   steps:
     - run: try { ${{ github.action_path }}/BranchCutOff.ps1 catch { Write-Host "::Error::Unexpected error when running action ($($_.Exception.Message))"; exit 1 }
       shell: PowerShell
-      env: AZDEVOPS ${{ secrets.AZDEVOPS }}
 branding:
   icon: terminal
   color: blue
