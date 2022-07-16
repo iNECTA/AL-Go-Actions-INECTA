@@ -3,6 +3,8 @@ Set-StrictMode -Version 2.0
 $telemetryScope = $null
 $bcContainerHelperPath = $null
 
+$script:gitHubSecrets = $env:Secrets | ConvertFrom-Json
+
 try {
 
     # import helper functions and download bccontainerhelper
@@ -10,7 +12,7 @@ try {
     $baseFolder = $ENV:GITHUB_WORKSPACE
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
 
-    Write-Host -Object "$ENV:AZDEVOPS"
+    Write-Host -Object "$ENV:gitHubSecrets"
 
 }
 catch {
