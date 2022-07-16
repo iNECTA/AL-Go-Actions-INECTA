@@ -87,6 +87,96 @@ function Get-dependencies {
     return $downloadedList;
 }
 
+# this function handles the installation of github cli
+function global:Install-GitHubCLI {
+
+    param (
+
+        [Parameter(Mandatory = $False)]
+        [switch] $Update
+
+    )
+
+    # intitial variables
+    $uri = "https://github.com/cli/cli/releases/latest/"
+    $workdir = "C:\ProgramData\BcContainerHelper"
+
+    # create directory
+    New-Item -Path $workdir -ItemType Directory -Force | Out-Null
+
+    # determine the latest release
+    $web1 = Invoke-WebRequest -Uri $uri -MaximumRedirection 0 -Method Get -UseBasicParsing -ErrorAction SilentlyContinue
+    $web2 = Invoke-WebRequest -Uri $uri -MaximumRedirection 1 -Method Get -UseBasicParsing -ErrorAction SilentlyContinue
+    $ver1 = ((($web1.RawContent.Split("`r`n")) | Where-Object {$_ -like "Location*"}).Replace("Location: ", "").Split('/') | Select-Object -Last 1).Replace("v", "")
+    $ver2 = $web2.Links.href | Where-Object {$_ -like "*$ver1*amd64*.zip"}
+    $latestver = $ver1
+
+    # determine the link to download
+    $link = "https://github.com" + $ver2
+
+    if ($Update) {
+        if (Test-Path -Path "$workdir\gh-cli\bin\gh.exe" -PathType Leaf) {
+        }
+        else {
+            Write-Host -ForegroundColor Yellow -Object "gh-cli installation not found!"
+            return
+        }
+        Write-Host -Object "Checking installed and latest available version..."
+        $currentver = ((&$workdir\gh-cli\bin\gh.exe --version | Select-Object -Last 1).Split('/') | Select-Object -Last 1).Replace("v", "")
+        Write-Host -ForegroundColor Yellow -Object "Installed version: $currentver"
+        Write-Host -ForegroundColor Yellow -Object "Available version: $latestver"
+        if ($currentver -eq $latestver) {
+            Write-Host -Object "Latest version already installed."
+        }
+        else {
+            Write-Host -Object "Downloading the latest installer..."
+            try {
+                Invoke-WebRequest -Uri $link -Method Get -OutFile "$workdir\gh-cli.zip"
+            }
+            catch {
+                Write-Warning -Message "Download failed!"
+                return
+            }
+            Write-Host -Object "Removing the existing installation..."
+            Remove-Item -Path "$workdir\gh-cli" -Recurse -Force
+            Write-Host -Object "Installing the downloaded version..."
+            New-Item -Path $workdir -Name "gh-cli" -ItemType Directory -Force | Out-Null
+            Expand-Archive -Path "$workdir\gh-cli.zip" -DestinationPath "$workdir\gh-cli" -Force
+            $currentver = ((&$workdir\gh-cli\bin\gh.exe --version | Select-Object -Last 1).Split('/') | Select-Object -Last 1).Replace("v", "")
+            Write-Host -Object "Removing the downloaded installer..."
+            Remove-Item -Path "$workdir\gh-cli.zip" -Force
+            Write-Host -ForegroundColor Yellow -Object "Installed version: $currentver"
+        }
+        return
+    }
+
+    if (Test-Path -Path "$workdir\gh-cli\bin\gh.exe" -PathType Leaf) {
+        Write-Host -Object "gh-cli already installed, checking installed and latest available version..."
+        $currentver = ((&$workdir\gh-cli\bin\gh.exe --version | Select-Object -Last 1).Split('/') | Select-Object -Last 1).Replace("v", "")
+        Write-Host -ForegroundColor Yellow -Object "Installed version: $currentver"
+        Write-Host -ForegroundColor Yellow -Object "Available version: $latestver"
+    }
+    else {
+        Write-Host -ForegroundColor Yellow -Object "gh-cli installation not found!"
+        Write-Host -Object "Downloading the installer..."
+        try {
+            Invoke-WebRequest -Uri $link -Method Get -OutFile "$workdir\gh-cli.zip"
+        }
+        catch {
+            Write-Warning -Message "Download failed!"
+            return
+        }
+        Write-Host -Object "Installing..."
+        New-Item -Path $workdir -Name "gh-cli" -ItemType Directory -Force | Out-Null
+        Expand-Archive -Path "$workdir\gh-cli.zip" -DestinationPath "$workdir\gh-cli" -Force
+        $currentver = ((&$workdir\gh-cli\bin\gh.exe --version | Select-Object -Last 1).Split('/') | Select-Object -Last 1).Replace("v", "")
+        Write-Host -Object "Removing the downloaded installer..."
+        Remove-Item -Path "$workdir\gh-cli.zip" -Force
+        Write-Host -ForegroundColor Yellow -Object "Installed version: $currentver"
+    }
+
+}
+
 function CreateGitHubRequestHeaders([string]$username, [string]$token) {
     Write-Host -Object "Generating GitHub API request headers..."
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
