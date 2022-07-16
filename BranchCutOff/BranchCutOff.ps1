@@ -90,10 +90,10 @@ try {
 }
 catch {
     OutputError -message $_.Exception.Message
-}
-finally {
-    CleanupAfterBcContainerHelper -bcContainerHelperPath $bcContainerHelperPath
     Write-Host -Object "Cleaning up inecta repository directories..."
     Set-Location -Path "$baseFolder"
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force
+}
+finally {
+    CleanupAfterBcContainerHelper -bcContainerHelperPath $bcContainerHelperPath
 }
