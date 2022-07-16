@@ -44,7 +44,8 @@ try {
     # upload artifacts to blob storage
     Get-ChildItem -Path "$baseFolder\blob-files\" | ForEach-Object {
         $uri = $uri = "https://$DevOpsAccount.blob.core.windows.net/$DevOpsContainer/" + $_.Name + $DevOpsRelease
-        Write-Host -Object "Uploading $($_.Name) Azure Blob Storage..."
+        $uri
+        Write-Host -Object "Uploading $($_.Name) to Azure Blob Storage..."
         Invoke-WebRequest -Uri $uri -Method Put -InFile $_.FullName -ContentType 'application/json' -Headers @{'Content-Type' = 'application/json'; 'x-ms-blob-type' = 'BlockBlob'}
     }
 
