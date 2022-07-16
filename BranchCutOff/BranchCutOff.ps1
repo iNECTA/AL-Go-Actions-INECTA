@@ -91,6 +91,7 @@ try {
         Set-Location -Path "$baseFolder\inecta-apps\"
         Write-Host -NoNewline -Object "`n"
     }
+    $releaseversion | Out-File -FilePath "$baseFolder\inecta-apps\release.version" -Encoding utf8 -NoNewline -Force
     Set-Location -Path $baseFolder
 }
 catch {
