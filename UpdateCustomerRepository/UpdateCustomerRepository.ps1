@@ -18,7 +18,7 @@ try {
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
 
     # install & update github cli
-    Write-Host -Object "Checking GitHub CLI installation...`n"
+    Write-Host -Object "Checking GitHub CLI installation..."
     $ghclibin = "C:\ProgramData\BcContainerHelper\gh-cli\bin\gh.exe"
     if (Test-Path -Path $ghclibin -PathType Leaf) {
         Install-GitHubCLI -Update
@@ -38,9 +38,9 @@ try {
     # find the github username
     Clear-Variable -Name "ghcliuser" -Force -ErrorAction SilentlyContinue
     Write-Host -Object "Verifying GitHub CLI username..."
-    &$ghclibin auth status *> "$ENV:TEMP\GITHUB_TOKEN.LOG"
-    $ghcliuser = (Get-Content -Path "$ENV:TEMP\GITHUB_TOKEN.LOG" | Select-String "Logged in to").Line.Split() | Select-Object -Last 1 -Skip 1
-    Remove-Item -Path "$ENV:TEMP\GITHUB_TOKEN.LOG" -Force -ErrorAction SilentlyContinue
+    &$ghclibin auth status *> "$ENV:RUNNER_TEMP\GITHUB_TOKEN.LOG"
+    $ghcliuser = (Get-Content -Path "$ENV:RUNNER_TEMP\GITHUB_TOKEN.LOG" | Select-String "Logged in to").Line.Split() | Select-Object -Last 1 -Skip 1
+    Remove-Item -Path "$ENV:RUNNER_TEMP\GITHUB_TOKEN.LOG" -Force -ErrorAction SilentlyContinue
     if ($null -eq $ghcliuser) {
         Write-Error -Message "Failed to determine GitHub CLI user name."
         throw
