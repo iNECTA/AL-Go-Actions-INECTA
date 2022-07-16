@@ -34,9 +34,6 @@ try {
     git commit --message "app folders update" --quiet
     git push
 
-    # sleep for 9 seconds
-    Start-Sleep -Seconds 9
-
 }
 catch {
     OutputError -message $_.Exception.Message
