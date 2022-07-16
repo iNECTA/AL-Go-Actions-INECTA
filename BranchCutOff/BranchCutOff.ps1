@@ -15,9 +15,6 @@ $DevOpsToken = $gitHubSecrets.AZDEVOPSTOKEN
 git config --global user.email "$($gitHubSecrets.AZDEVOPSUSER)@inecta.com"
 git config --global user.name "$($gitHubSecrets.AZDEVOPSUSER)"
 
-# get the algo settingsjson
-$algosettingsjson = Get-Content -Path "$baseFolder\.github\AL-Go-Settings.json" | ConvertFrom-Json
-
 # determine release branch
 $releasebranch2 = "TMP.REL." + $(Get-Date -Format "yy") + $("{0:d1}" -f ($(Get-Culture).Calendar.GetWeekOfYear((Get-Date), [System.Globalization.CalendarWeekRule]::FirstFourDayWeek, [DayOfWeek]::Monday)))
 
@@ -27,6 +24,9 @@ try {
     . (Join-Path -Path $PSScriptRoot -ChildPath "..\AL-Go-Helper.ps1" -Resolve)
     $baseFolder = $ENV:GITHUB_WORKSPACE
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
+
+    # get the algo settingsjson
+    $algosettingsjson = Get-Content -Path "$baseFolder\.github\AL-Go-Settings.json" | ConvertFrom-Json
 
     # get the list of apps
     $apps = $algosettingsjson.appFolders -replace "/app", ""
