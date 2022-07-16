@@ -33,11 +33,11 @@ try {
     $apps = $algosettingsjson.appFolders -replace "/app", ""
     Write-Host -Object "List of apps: $($apps -join ",")"
 
-    # get the repositories
+    # get the repositories and create cutoff beanches
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -Path $baseFolder -Name "inecta-apps" -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
     Set-Location -Path "$baseFolder\inecta-apps"
-    Write-Host -Object "Checking out apps repositories..."
+    Write-Host -Object "Checking out apps repositories...`n"
     $ENV:GIT_REDIRECT_STDERR = '2>&1'
     $apps | ForEach-Object {
         git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $_)
@@ -48,10 +48,8 @@ try {
         Set-Location -Path "$baseFolder\inecta-apps\$_"
         $defbranch = ((git branch --remotes --list '*/HEAD').Split('->').Trim() | Select-Object -Last 1)
         $releasebranches = git branch --remotes --list "*/$releasebranch2*"
-        #$releasebranch = $releasebranch2 + "." + $('{0:d3}' -f ($releasebranches.Count + 1))
-        #$releaseversion = ([System.Version]$($(Get-Date -Format "yyyy.M.d") + "." + $('{0:d3}' -f ($releasebranches.Count + 1)))).ToString()
-        $releasebranch = $releasebranch2 + "." + $('{0:d3}' -f (11 + 1))
-        $releaseversion = ([System.Version]$($(Get-Date -Format "yyyy.M.d") + "." + $('{0:d3}' -f (11 + 1)))).ToString()
+        $releasebranch = $releasebranch2 + "." + $('{0:d3}' -f ($releasebranches.Count + 1))
+        $releaseversion = ([System.Version]$($(Get-Date -Format "yyyy.M.d") + "." + $('{0:d3}' -f ($releasebranches.Count + 1)))).ToString()
         if ((git branch --remotes --list).Split('/').Trim() -notcontains $releasebranch) {
             Write-Host -Object "Creating release branch $releasebranch for $_..."
             git branch $releasebranch $defbranch --no-track
