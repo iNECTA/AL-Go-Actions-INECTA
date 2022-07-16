@@ -40,11 +40,11 @@ try {
         $releaseversion = ($blobname.BaseName).Split('_') | Select-Object -Last 1
         Rename-Item -Path $blobname.FullName -NewName "$baseFolder\blob-files\$appname.$releaseversion.app" -Verbose
     }
+    Write-Host -NoNewline -Object "`n"
 
     # upload artifacts to blob storage
     Get-ChildItem -Path "$baseFolder\blob-files\" | ForEach-Object {
         $uri = $uri = "https://$DevOpsAccount.blob.core.windows.net/$DevOpsContainer/" + $_.Name + $DevOpsRelease
-        $uri
         Write-Host -Object "Uploading $($_.Name) to Azure Blob Storage..."
         Invoke-WebRequest -Uri $uri -Method Put -InFile $_.FullName -ContentType 'application/json' -Headers @{'Content-Type' = 'application/json'; 'x-ms-blob-type' = 'BlockBlob'}
     }
