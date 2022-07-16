@@ -12,7 +12,7 @@ try {
     $baseFolder = $ENV:GITHUB_WORKSPACE
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
 
-    Write-Host -Object "$ENV:gitHubSecrets"
+    Write-Host -Object "$gitHubSecrets"
 
 }
 catch {
