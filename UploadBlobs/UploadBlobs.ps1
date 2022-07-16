@@ -50,10 +50,10 @@ try {
 }
 catch {
     OutputError -message $_.Exception.Message
-    Write-Host -Object "Cleaning up inecta apps repository directories..."
-    Set-Location -Path "$baseFolder"
-    Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
 }
 finally {
     CleanupAfterBcContainerHelper -bcContainerHelperPath $bcContainerHelperPath
+    Write-Host -Object "Cleaning up inecta blobs directoriy..."
+    Set-Location -Path "$baseFolder"
+    Remove-Item -Path "$baseFolder\release-blobs" -Recurse -Force -ErrorAction SilentlyContinue
 }
