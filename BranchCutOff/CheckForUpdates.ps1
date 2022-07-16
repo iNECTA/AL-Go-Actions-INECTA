@@ -3,7 +3,7 @@ Set-StrictMode -Version 2.0
 $telemetryScope = $null
 $bcContainerHelperPath = $null
 
-$script:gitHubSecrets = $env:Secrets | ConvertFrom-Json
+$script:gitHubSecrets = $env:secrets | ConvertFrom-Json
 
 try {
 
