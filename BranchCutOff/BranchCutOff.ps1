@@ -26,7 +26,7 @@ try {
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
 
     # get the algo settingsjson
-    Write-Host -Object "Parsing AL-Go-Settings.json..."
+    Write-Host -Object "`nParsing AL-Go-Settings.json..."
     $algosettingsjson = Get-Content -Path "$baseFolder\.github\AL-Go-Settings.json" | ConvertFrom-Json
 
     # get the list of apps
@@ -47,6 +47,7 @@ try {
         Write-Host -Object "Entering granule directory..."
         Set-Location -Path "$baseFolder\inecta-apps\$_"
         $defbranch = ((git branch --remotes --list '*/HEAD').Split('->').Trim() | Select-Object -Last 1)
+        git branch --remotes --list "*/$releasebranch2*"
         $releasebranches = git branch --remotes --list "*/$releasebranch2*"
         $releasebranch = $releasebranch2 + "." + $('{0:d3}' -f ($releasebranches.Count + 1))
         $releaseversion = ([System.Version]$($(Get-Date -Format "yyyy.M.d") + "." + $('{0:d3}' -f ($releasebranches.Count + 1)))).ToString()
