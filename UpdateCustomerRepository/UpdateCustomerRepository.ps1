@@ -27,6 +27,8 @@ try {
         Install-GitHubCLI
     }
 
+    <#
+
     # validate github authentication
     Write-Host -Object "`nValidating GitHub CLI authentication..."
     &$ghclibin auth status
@@ -50,7 +52,13 @@ try {
     git config --global user.email "$($ghcliuser)@inecta.com"
     git config --global user.name "$($ghcliuser)"
 
+    #>
+
     Get-ChildItem -Path $ENV:GITHUB_WORKSPACE -Recurse
+
+    Set-Location -Path $ENV:GITHUB_WORKSPACE
+
+    git status
 
 }
 catch {
