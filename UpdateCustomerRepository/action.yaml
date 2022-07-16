@@ -5,7 +5,7 @@ runs:
   steps:
     - shell: PowerShell
       run: |
-        try { ${{ github.action_path }}/BranchCutOff.ps1 } catch { Write-Host "::Error::Unexpected error when running action ($($_.Exception.Message))"; exit 1 }
+        try { ${{ github.action_path }}/UpdateCustomerRepository.ps1 } catch { Write-Host "::Error::Unexpected error when running action ($($_.Exception.Message))"; exit 1 }
 
 branding:
   icon: terminal
