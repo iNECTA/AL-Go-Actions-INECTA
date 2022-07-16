@@ -30,9 +30,7 @@ try {
     # copy the blobs to new directory
     Write-Host -Object "Copying artifacts to blobs upload directory..."
     New-Item -Path $baseFolder -Name "release-blobs" -ItemType Directory -Force | Out-Null
-    (Get-ChildItem -Path $baseFolder -Recurse).FullName
-    (Get-ChildItem -Path $baseFolder -Recurse -Filter "*.app").FullName
-    Copy-Item -Path "$baseFolder\output\Apps\*.app" -Destination "$baseFolder\release-blobs" -Force
+    Copy-Item -Path "$baseFolder\artifacts\*\*.app" -Destination "$baseFolder\release-blobs" -Force
 
     # rename artifacts
     Write-Host -Object "`nRenaming artifacts for upload to blob storage..."
