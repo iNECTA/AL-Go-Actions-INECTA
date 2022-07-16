@@ -54,11 +54,11 @@ try {
 
     #>
 
-    Get-ChildItem -Path $ENV:GITHUB_WORKSPACE -Recurse
-
-    Set-Location -Path $ENV:GITHUB_WORKSPACE
-
-    git status
+    Copy-Item -Path "$baseFolder\inecta-apps\*" -Destination $baseFolder -Recurse -Force
+    Set-Location -Path $baseFolder
+    git add .
+    git commit -m "app folders update"
+    git push
 
 }
 catch {
@@ -66,4 +66,7 @@ catch {
 }
 finally {
     CleanupAfterBcContainerHelper -bcContainerHelperPath $bcContainerHelperPath
+    Write-Host -Object "Cleaning up inecta repository directories..."
+    Set-Location -Path "$baseFolder"
+    Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force
 }
