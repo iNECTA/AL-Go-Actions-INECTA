@@ -1,6 +1,5 @@
 # initial configuration
 $ErrorActionPreference = "Stop"
-Set-StrictMode -Version 2.0
 $telemetryScope = $null
 $bcContainerHelperPath = $null
 
@@ -47,9 +46,9 @@ try {
         Write-Host -Object "Entering granule directory..."
         Set-Location -Path "$baseFolder\inecta-apps\$_"
         $defbranch = ((git branch --remotes --list '*/HEAD').Split('->').Trim() | Select-Object -Last 1)
-        git branch --remotes --list "*/$releasebranch2*"
         $releasebranches = git branch --remotes --list "*/$releasebranch2*"
         $releasebranch = $releasebranch2 + "." + $('{0:d3}' -f ($releasebranches.Count + 1))
+        write-host testing
         $releaseversion = ([System.Version]$($(Get-Date -Format "yyyy.M.d") + "." + $('{0:d3}' -f ($releasebranches.Count + 1)))).ToString()
         if ((git branch --remotes --list).Split('/').Trim() -notcontains $releasebranch) {
             Write-Host -Object "Creating release branch $releasebranch for $_..."
