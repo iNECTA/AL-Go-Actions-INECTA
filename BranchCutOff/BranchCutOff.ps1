@@ -35,7 +35,7 @@ try {
 
     # get the repositories and create cutoff beanches
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
-    New-Item -Path $baseFolder -Name "inecta-apps" -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+    New-Item -Path $baseFolder -Name "inecta-apps" -ItemType Directory -Force | Out-Null
     Set-Location -Path "$baseFolder\inecta-apps"
     Write-Host -Object "Checking out apps repositories...`n"
     $ENV:GIT_REDIRECT_STDERR = '2>&1'
