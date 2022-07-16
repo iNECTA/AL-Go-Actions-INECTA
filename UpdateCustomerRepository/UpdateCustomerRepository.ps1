@@ -19,6 +19,7 @@ try {
     $apps = $algosettingsjson.appFolders -replace "/app", ""
     Write-Host -Object "List of apps: $($apps -join ",")"
 
+    # add app folders to customer repository
     Write-Host -Object "`nAdding apps to customer repository..."
     $apps | ForEach-Object {
         Write-Host -Object "Adding $_..."
@@ -26,10 +27,14 @@ try {
         Copy-Item -Path "$baseFolder\inecta-apps\$_" -Destination $baseFolder -Recurse -Force
     }
 
+    # merge the changes to customer repository
     Set-Location -Path $baseFolder
     git add .
     git commit --message "app folders update" --quiet
     git push
+
+    # sleep for 9 seconds
+    Start-Sleep -Seconds 9
 
 }
 catch {
