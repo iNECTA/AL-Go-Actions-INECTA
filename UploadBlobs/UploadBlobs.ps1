@@ -28,6 +28,7 @@ try {
     Write-Host -Object "List of apps: $($apps -join ",")"
 
     # copy the blobs to new directory
+    Write-Host -Object "Copying artifacts to blobs upload directory..."
     New-Item -Path $baseFolder -Name "release-blobs" -ItemType Directory -Force | Out-Null
     Copy-Item -Path "$baseFolder\output\Apps\*.app" -Destination "$baseFolder\release-blobs" -Force
 
