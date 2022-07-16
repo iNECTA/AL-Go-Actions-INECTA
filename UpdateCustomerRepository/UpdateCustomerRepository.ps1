@@ -17,6 +17,7 @@ try {
     $baseFolder = $ENV:GITHUB_WORKSPACE
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
 
+    <#
     # install & update github cli
     Write-Host -Object "Checking GitHub CLI installation..."
     $ghclibin = "C:\ProgramData\BcContainerHelper\gh-cli\bin\gh.exe"
@@ -26,7 +27,7 @@ try {
     else {
         Install-GitHubCLI
     }
-
+    #>
     <#
 
     # validate github authentication
@@ -54,7 +55,19 @@ try {
 
     #>
 
-    Copy-Item -Path "$baseFolder\inecta-apps\*" -Destination $baseFolder -Recurse -Force
+    # get the algo settingsjson
+    Write-Host -Object "`nParsing AL-Go-Settings.json..."
+    $algosettingsjson = Get-Content -Path "$baseFolder\.github\AL-Go-Settings.json" | ConvertFrom-Json
+
+    # get the list of apps
+    $apps = $algosettingsjson.appFolders -replace "/app", ""
+    Write-Host -Object "List of apps: $($apps -join ",")"
+
+    $apps | ForEach-Object {
+        Remove-Item -Path "$baseFolder\inecta-apps\$_\.git" -Recurse -Force -ErrorAction SilentlyContinue
+        Copy-Item -Path "$baseFolder\inecta-apps\$_" -Destination $baseFolder -Recurse -Force
+    }
+
     Set-Location -Path $baseFolder
     git add .
     git commit -m "app folders update"
