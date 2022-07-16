@@ -7,7 +7,7 @@ $script:gitHubSecrets = $env:secrets | ConvertFrom-Json
 
 try {
 
-    # import helper functions and download bccontainerhelper
+    # import helper function and download bccontainerhelper
     . (Join-Path -Path $PSScriptRoot -ChildPath "..\AL-Go-Helper.ps1" -Resolve)
     $baseFolder = $ENV:GITHUB_WORKSPACE
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
