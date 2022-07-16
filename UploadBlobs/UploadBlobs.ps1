@@ -29,22 +29,23 @@ try {
 
     # copy the blobs to new directory
     Write-Host -Object "Copying artifacts to blobs upload directory..."
-    New-Item -Path $baseFolder -Name "release-blobs" -ItemType Directory -Force | Out-Null
-    Copy-Item -Path "$baseFolder\artifacts\*\*.app" -Destination "$baseFolder\release-blobs" -Force
+    New-Item -Path $baseFolder -Name "blob-files" -ItemType Directory -Force | Out-Null
+    Copy-Item -Path "$baseFolder\artifacts\*\*.app" -Destination "$baseFolder\blob-files" -Force
 
     # rename artifacts
     Write-Host -Object "`nRenaming artifacts for upload to blob storage..."
     $apps | ForEach-Object {
         $appname = $_
-        $blobname = Get-ChildItem -Path "$baseFolder\release-blobs\" | Where-Object {$_.Name -like "*$appname*"}
+        $blobname = Get-ChildItem -Path "$baseFolder\blob-files\" | Where-Object {$_.Name -like "*$appname*"}
         $releaseversion = ($blobname.BaseName).Split('_') | Select-Object -Last 1
-        Rename-Item -Path $blobname.FullName -NewName "$baseFolder\release-blobs\$appname.$releaseversion.app" -Verbose
+        Rename-Item -Path $blobname.FullName -NewName "$baseFolder\blob-files\$appname.$releaseversion.app" -Verbose
     }
 
     # upload artifacts to blob storage
-    Get-ChildItem -Path "$baseFolder\release-blobs\" | ForEach-Object {
+    Get-ChildItem -Path "$baseFolder\blob-files\" | ForEach-Object {
         $uri = $uri = "https://$DevOpsAccount.blob.core.windows.net/$DevOpsContainer/" + $_.Name + $DevOpsRelease
-        Write-Host -Object "Uploading $($_.Name) Azure Blob Storage..."
+        $uri
+        Write-Host -Object "Uploading $($_.Name) to Azure Blob Storage..."
         Invoke-WebRequest -Uri $uri -Method Put -InFile $_.FullName -ContentType 'application/json' -Headers @{'Content-Type' = 'application/json'; 'x-ms-blob-type' = 'BlockBlob'}
     }
 
@@ -56,5 +57,5 @@ finally {
     CleanupAfterBcContainerHelper -bcContainerHelperPath $bcContainerHelperPath
     Write-Host -Object "Cleaning up inecta blobs directoriy..."
     Set-Location -Path "$baseFolder"
-    Remove-Item -Path "$baseFolder\release-blobs" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$baseFolder\blob-files" -Recurse -Force -ErrorAction SilentlyContinue
 }
