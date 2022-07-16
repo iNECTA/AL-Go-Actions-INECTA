@@ -38,6 +38,7 @@ try {
         $appname = $_
         $blobname = Get-ChildItem -Path "$baseFolder\blob-files\" | Where-Object {$_.Name -like "*$appname*"}
         $releaseversion = ($blobname.BaseName).Split('_') | Select-Object -Last 1
+        Add-Content -Path$ENV:GITHUB_ENV -Value "RelVerTag=$releaseversion"
         Rename-Item -Path $blobname.FullName -NewName "$baseFolder\blob-files\$appname.$releaseversion.app" -Verbose
     }
     Write-Host -NoNewline -Object "`n"
