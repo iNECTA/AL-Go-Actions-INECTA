@@ -26,6 +26,7 @@ try {
         Remove-Item -Path "$baseFolder\inecta-apps\$_\.git" -Recurse -Force -ErrorAction SilentlyContinue
         Copy-Item -Path "$baseFolder\inecta-apps\$_" -Destination $baseFolder -Recurse -Force
     }
+    Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
 
     # merge the changes to customer repository
     Set-Location -Path $baseFolder
@@ -44,5 +45,5 @@ finally {
     CleanupAfterBcContainerHelper -bcContainerHelperPath $bcContainerHelperPath
     Write-Host -Object "Cleaning up inecta apps repository directories..."
     Set-Location -Path "$baseFolder"
-    Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force
+    Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
 }
