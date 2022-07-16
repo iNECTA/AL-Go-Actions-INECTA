@@ -549,6 +549,7 @@ function AnalyzeRepo {
     }
 
     Write-Host "Checking appFolders and testFolders"
+    Get-ChildItem -Path $baseFolder
     $dependencies = [ordered]@{}
     1..3 | ForEach-Object {
         $appFolder = $_ -eq 1
