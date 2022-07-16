@@ -26,20 +26,19 @@ try {
     $BcContainerHelperPath = DownloadAndImportBcContainerHelper -baseFolder $baseFolder
 
     # get the algo settingsjson
+    Write-Host -Object "Parsing AL-Go-Settings.json..."
     $algosettingsjson = Get-Content -Path "$baseFolder\.github\AL-Go-Settings.json" | ConvertFrom-Json
 
     # get the list of apps
     $apps = $algosettingsjson.appFolders -replace "/app", ""
+    Write-Host -Object "List of apps: $($apps -join ",")"
 
     # get the repositories
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -Path $baseFolder -Name "inecta-apps" -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
     Set-Location -Path "$baseFolder\inecta-apps"
+    Write-Host -Object "Checking out apps repositories..."
     $ENV:GIT_REDIRECT_STDERR = '2>&1'
-    $apps | ForEach-Object {
-        git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $_)
-    }
-
     $apps | ForEach-Object {
         git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $_)
         if ($LASTEXITCODE -eq 128) {
@@ -87,7 +86,7 @@ try {
         git commit -m "renumbered files from 3x to 5x/6x"
         git push origin $releasebranch --force
         Set-Location -Path "$baseFolder\inecta-apps\"
-        Write-Host -NoNewline -Object "`n`n"
+        Write-Host -NoNewline -Object "`n"
     }
     Set-Location -Path $baseFolder
 }
@@ -96,5 +95,7 @@ catch {
 }
 finally {
     CleanupAfterBcContainerHelper -bcContainerHelperPath $bcContainerHelperPath
+    Write-Host -Object "Cleaning up inecta repository directories..."
+    Set-Location -Path "$baseFolder"
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force
 }
