@@ -49,7 +49,7 @@ try {
         $defbranch = ((git branch --remotes --list '*/HEAD').Split('->').Trim() | Select-Object -Last 1)
         $releasebranches = @(git branch --remotes --list "*/$releasebranch2*")
         $releasebranch = $releasebranch2 + "." + $('{0:d3}' -f ($releasebranches.Count + 1))
-        $releaseversion = ([System.Version]$($(Get-Date -Format "yyyy.M.d") + "." + $('{0:d3}' -f ($releasebranches.Count + 1)))).ToString()
+        $releaseversion = ([System.Version]$($(Get-Date -Format "yyyyMMdd") + "." + $('{0:d3}' -f ($releasebranches.Count + 1) + ".0.0"))).ToString()
         if ((git branch --remotes --list).Split('/').Trim() -notcontains $releasebranch) {
             Write-Host -Object "Creating release branch $releasebranch for $_..."
             git branch $releasebranch $defbranch --no-track
@@ -74,7 +74,7 @@ try {
         Write-Host -Object "Updating app.json file..."
         $appjson = (Get-Content -Path ".\app\app.json" -Raw) | ConvertFrom-Json
         $appjson.dependencies | Where-Object {$_.publisher -like "inecta*"} | Foreach-Object {
-            $_.version = ([System.Version]$($(($releaseversion.Split('.') | Select-Object -First 2) -join ".") + ".0.0")).ToString()
+            $_.version = $releaseversion
         }
         $appjson.version = $releaseversion
         $appjson | Add-Member -Name "showMyCode" -Value $False -MemberType "NoteProperty" -ErrorAction SilentlyContinue
