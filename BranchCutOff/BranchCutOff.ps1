@@ -56,7 +56,7 @@ try {
         $releasebranch = $releasebranch2 + "." + $suffix
         $releaseversion = ([System.Version]$($(Get-Date -Format "yyyyMMdd") + "." + $($suffix + ".0.0"))).ToString()
         if ((git branch --remotes --list).Split('/').Trim() -notcontains $releasebranch) {
-            Write-Host -Object "Creating release branch $releasebranch for $_..."
+            Write-Host -Object "Creating cutoff branch $releasebranch for $_..."
             git branch $releasebranch $defbranch --no-track
             git push -u origin $releasebranch
         }
