@@ -1,6 +1,5 @@
 # initial configuration
 $ErrorActionPreference = "Stop"
-Set-StrictMode -Version 2.0
 $telemetryScope = $null
 $bcContainerHelperPath = $null
 
