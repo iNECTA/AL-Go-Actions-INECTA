@@ -26,9 +26,11 @@ try {
         Remove-Item -Path "$baseFolder\inecta-apps\$_\.git" -Recurse -Force -ErrorAction SilentlyContinue
         Copy-Item -Path "$baseFolder\inecta-apps\$_" -Destination $baseFolder -Recurse -Force
     }
-    Write-Host -Object "Adding version file to customer repository...`n"
+    Write-Host -Object "Adding release.version file to customer repository...`n"
     Copy-Item -Path "$baseFolder\inecta-apps\release.version" -Destination $baseFolder -Force
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
+    $releaseversion = Get-Content -Path "$baseFolder\release.version"
+    Write-Host -Object "Release version: $releaseversion"
 
     # merge the changes to customer repository
     Set-Location -Path $baseFolder
