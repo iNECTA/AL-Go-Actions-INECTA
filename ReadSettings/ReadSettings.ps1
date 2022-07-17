@@ -75,10 +75,12 @@ try {
                     # get value from release.version
                     Write-Host -Object "Getting app build and revision from release.version file..."
                     $releaseversion = Get-Content -Path "$ENV:GITHUB_WORKSPACE\release.version"
+                    Write-Host "Release version: $releaseversion"
                     # USE LITERAL VALUES
                     $settings.appBuild = [Int32]$($releaseversion.Split('.') | Select-Object -Last 1 -Skip 1)
                     $settings.appRevision = [Int32]$($releaseversion.Split('.') | Select-Object -Last 1)
-                    [Int32]$($releaseversion.Split('.') | Select-Object -Last 1 -Skip 1); [Int32]$($releaseversion.Split('.') | Select-Object -Last 1)
+                    Write-Host "App Build Version: $($settings.appBuild)"
+                    Write-Host "App Revision Version: $($settings.appRevision)"
                 }
                 15 {
                     # Use maxValue
