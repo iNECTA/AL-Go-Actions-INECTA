@@ -54,7 +54,7 @@ try {
         $suffix = ($suffix | Measure-Object -Maximum).Maximum + 1
         $suffix = '{0:d3}' -f [System.Int32]$suffix
         $releasebranch = $releasebranch2 + "." + $suffix
-        $releaseversion = ([System.Version]$($(Get-Date -Format "yyyyMMdd") + "." + $($suffix + ".0.0"))).ToString()
+        $releaseversion = ([System.Version]$($(Get-Date -Format "yyyy.M.d") + "." + $($suffix))).ToString()
         if ((git branch --remotes --list).Split('/').Trim() -notcontains $releasebranch) {
             Write-Host -Object "Creating cutoff branch $releasebranch for $_..."
             git branch $releasebranch $defbranch --no-track
