@@ -77,6 +77,8 @@ try {
                     # USE LITERAL VALUES
                     $settings.appBuild = $releaseversion.Split('.') | Select-Object -Last 1 -Skip 1
                     $settings.appRevision = $releaseversion.Split('.') | Select-Object -Last 1
+                    # print settings
+                    Write-Host "$settings"
                 }
                 15 {
                     # Use maxValue
