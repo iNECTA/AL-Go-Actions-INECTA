@@ -78,7 +78,7 @@ try {
                     # USE LITERAL VALUES
                     $settings.appBuild = [Int32]$($releaseversion.Split('.') | Select-Object -Last 1 -Skip 1)
                     $settings.appRevision = [Int32]$($releaseversion.Split('.') | Select-Object -Last 1)
-                    [Int32]$($releaseversion.Split('.') | Select-Object -Last 1 -Skip 1); [Int32]$($releaseversion.Split('.') | Select-Object -Last 1 -Skip 1)
+                    [Int32]$($releaseversion.Split('.') | Select-Object -Last 1 -Skip 1); [Int32]$($releaseversion.Split('.') | Select-Object -Last 1)
                 }
                 15 {
                     # Use maxValue
