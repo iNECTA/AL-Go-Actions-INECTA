@@ -1,0 +1,12 @@
+name: PowerShell Script
+author: Vivek Jindal
+runs:
+  using: composite
+  steps:
+    - shell: PowerShell
+      run: |
+        try { ${{ github.action_path }}/UpdateCustomerRepository.ps1 } catch { Write-Host "::Error::Unexpected error when running action ($($_.Exception.Message))"; exit 1 }
+
+branding:
+  icon: terminal
+  color: blue
