@@ -107,8 +107,8 @@ try {
     # $AppFolders = @($envFile.Apps | ForEach-Object {$($_.App + "/app") })
     #$AppFolders = ($envFile.Apps | ForEach-Object {$($_.App + "/app") }) -join ','
     $AppFolders = $envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/app")}
-    $TestFolders = $envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/test")}
-    #$TestFolders = @()
+    #$TestFolders = $envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/test")}
+    $TestFolders = @()
     
     # Write to the AL-GO/setting.JSON file
     $settingsJson = @{
