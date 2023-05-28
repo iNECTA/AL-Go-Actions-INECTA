@@ -68,8 +68,10 @@ try {
     $ErrorActionPreference = "Stop"
 
   
-    # move folders and update number series
+    # get-app and move folders and update number series
     $envFile.Apps | ForEach-Object {
+        $jsonvalue = $_
+        Get-App -simp $_.App -branch $_.Branch -Tag $_.Tag       
         $newDestination = "$baseFolder\inecta-apps\$($_.App)$($_.Branch).$($_.Tag)"
         if (-Not (Test-Path -Path $newDestination)) {
             Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination $newDestination -Force
