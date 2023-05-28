@@ -73,9 +73,18 @@ try {
     $envFile.Apps | ForEach-Object {
         $jsonvalue = $_
         Get-App -simp $_.App -branch $_.Branch -Tag $_.Tag
-        Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\" -Force
+        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\" -Force
+        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\$($_.App)$($_.Branch)$($_.Tag)" -Force
+        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\$($_.Tag)" -Force
+        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\$($_.App)$($_.Branch).$($_.Tag)" -Force
+    
+        $newDestination = "$baseFolder\inecta-apps\$($_.App)$($_.Branch).$($_.Tag)"
+        Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination $newDestination -Force
+
         Write-Host -ForegroundColor Yellow -Object "Renumbering files..."
-        $files = Get-ChildItem -Path "$baseFolder\inecta-apps\$($_.App)$($_.Branch)" -Include *.xml, *.json, *.al -Recurse
+        #$files = Get-ChildItem -Path "$baseFolder\inecta-apps\$($_.App)$($_.Branch)" -Include *.xml, *.json, *.al -Recurse
+        $files = Get-ChildItem -Path $newDestination -Include *.xml, *.json, *.al -Recurse
+
         foreach ($file in $files) {
         (Get-Content -Path $file.PSPath) | Foreach-Object {
                 $_ -replace "3700", "5" `
@@ -84,9 +93,7 @@ try {
             } | Set-Content -Path $file.PSPath
             #Write-Host -ForegroundColor Green -Object "File changed : $($file.Name)"
         }
-    }
-   
-    
+    }    
 
     # clean up .git folders
     $envFile.Apps | ForEach-Object {
