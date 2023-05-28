@@ -28,7 +28,7 @@ try {
     $algosettingsjson = Get-Content -Path "$baseFolder\.github\AL-Go-Settings.json" | ConvertFrom-Json
 
     # cleanup the repo
-    Get-ChildItem -Path $baseFolder -Exclude @(".AL-Go", ".github", "SUPPORT.md", "SECURITY.md", "README.md", "al.code-workspace", ".gitignore", "WriteEnviornmentFilesBackToMasterAfterPipelines.ps1") | Remove-Item -Recurse -Force
+    #Get-ChildItem -Path $baseFolder -Exclude @(".AL-Go", ".github", "SUPPORT.md", "SECURITY.md", "README.md", "al.code-workspace", ".gitignore", "WriteEnviornmentFilesBackToMasterAfterPipelines.ps1") | Remove-Item -Recurse -Force
 
     # obtain the customer repository to parse the json
     Write-Host -Object "Obtaining customer repository..."
@@ -68,16 +68,33 @@ try {
     $ErrorActionPreference = "Stop"
 
   
+    # move folders and update number series
+    $envFile.Apps | ForEach-Object {
+        $newDestination = "$baseFolder\inecta-apps\$($_.App)$($_.Branch).$($_.Tag)"
+        if (-Not (Test-Path -Path $newDestination)) {
+            Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination $newDestination -Force
 
+            Write-Host -ForegroundColor Yellow -Object "Renumbering files..."
+            $files = Get-ChildItem -Path $newDestination -Include *.xml, *.json, *.al -Recurse
+
+            foreach ($file in $files) {
+                (Get-Content -Path $file.PSPath) | Foreach-Object {
+                    $_ -replace "3700", "5" `
+                        -replace "3701", "6" `
+                        -replace "3711", "6" `
+                } | Set-Content -Path $file.PSPath
+            }
+        }
+        else {
+            Write-Host -ForegroundColor Yellow -Object "The directory $newDestination already exists. Skipping..."
+        }
+    }
+
+    <#
     # run get-app
     $envFile.Apps | ForEach-Object {
         $jsonvalue = $_
         Get-App -simp $_.App -branch $_.Branch -Tag $_.Tag
-        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\" -Force
-        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\$($_.App)$($_.Branch)$($_.Tag)" -Force
-        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\$($_.Tag)" -Force
-        #Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\$($_.App)$($_.Branch).$($_.Tag)" -Force
-    
         $newDestination = "$baseFolder\inecta-apps\$($_.App)$($_.Branch).$($_.Tag)"
         Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination $newDestination -Force
 
@@ -93,7 +110,21 @@ try {
             } | Set-Content -Path $file.PSPath
             #Write-Host -ForegroundColor Green -Object "File changed : $($file.Name)"
         }
-    }    
+    }  
+    #>
+    # build a hashtable of valid combinations from envFile
+    $validCombinations = @{}
+    $envFile.Apps | ForEach-Object {
+        $validCombinations["$($_.App)$($_.Branch).$($_.Tag)"] = $true
+    }
+
+    # delete folders that do not exist in envFile
+    $existingDirectories = Get-ChildItem -Path "$baseFolder\inecta-apps" -Directory
+    foreach ($directory in $existingDirectories) {
+        if (-Not $validCombinations.ContainsKey($directory.Name)) {
+            Remove-Item -Path $directory.FullName -Recurse -Force
+        }
+    }
 
     # clean up .git folders
     $envFile.Apps | ForEach-Object {
@@ -102,8 +133,6 @@ try {
         Copy-Item -Path "$baseFolder\inecta-apps\$($_.App)$($_.Branch)" -Destination $baseFolder -Recurse -Force
     }
     
-   
-
     # clean up repo
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
     
