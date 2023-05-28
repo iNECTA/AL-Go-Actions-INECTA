@@ -72,7 +72,7 @@ try {
     # run get-app
     $envFile.Apps | ForEach-Object {
         $jsonvalue = $_
-        Get-App -simp -cloneType "shallow" $_.App -branch $_.Branch -Tag $_.Tag
+        Get-App -simp $_.App -branch $_.Branch -Tag $_.Tag -cloneType "shallow"
         Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\" -Force
         Write-Host -ForegroundColor Yellow -Object "Renumbering files..."
         $files = Get-ChildItem -Path "$baseFolder\inecta-apps\$($_.App)$($_.Branch)" -Include *.xml, *.json, *.al -Recurse
