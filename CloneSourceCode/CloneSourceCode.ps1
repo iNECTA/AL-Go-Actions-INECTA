@@ -50,7 +50,7 @@ $encodedDevOpsToken = [System.Web.HttpUtility]::UrlEncode($DevOpsToken)
 
 # Configure Git credentials
 git config --global credential.helper store
-echo "https://$encodedDevOpsUser:$encodedDevOpsToken@dev.azure.com" | git credential approve
+# echo "https://$encodedDevOpsUser:$encodedDevOpsToken@dev.azure.com" | git credential approve
 
 # Simplified clone command
 git clone "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
@@ -70,10 +70,10 @@ git clone "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
 $encodedDevOpsToken = [System.Web.HttpUtility]::UrlEncode($DevOpsToken) 
 
 # Construct the Git repository URL properly
-$gitRepoUrl = "https://$($DevOpsUser)@inecta.com:$encodedDevOpsToken@dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
+#$gitRepoUrl = "https://$($DevOpsUser)@inecta.com:$encodedDevOpsToken@dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
 
-Write-Host -Object "Cloning the repository: $gitRepoUrl..."
-git clone $gitRepoUrl
+#Write-Host -Object "Cloning the repository: $gitRepoUrl..."
+#git clone $gitRepoUrl
 
 # Verify the clone path exists after running the command
 $customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
