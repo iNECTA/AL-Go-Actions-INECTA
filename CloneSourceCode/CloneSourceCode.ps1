@@ -38,6 +38,8 @@ try {
     $ENV:GIT_REDIRECT_STDERR = '2>&1'
     $customerrepo = $envInput.Split('/') | Select-Object -First 1
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
+
+    Write-Host -Object "Running this: it clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $customerrepo)..."
     git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $customerrepo)
     # set branch for testing purpose
     Set-Location -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo"
