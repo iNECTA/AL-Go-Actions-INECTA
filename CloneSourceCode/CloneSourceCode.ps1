@@ -41,36 +41,34 @@ try {
     $customerrepo = $envInput.Split('/') | Select-Object -First 1
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
+    # -> FF
 
+    Write-Host -Object "Obtaining customer repository..."
+    
+    # Encode the username and PAT for the Authorization header
+    $authString = "user:$DevOpsToken"
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
+    $base64Auth = [System.Convert]::ToBase64String($bytes)
+    
+    # Construct the Git repository URL without credentials
+    $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
+    
+    Write-Host -Object "Cloning the repository: $gitRepoUrl..."
+    
+    # Perform the git clone with the extraheader
+    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
+    
+    # Verify the clone path exists after running the command
+    $customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
+    if (!(Test-Path -Path $customerRepoPath)) {
+        throw "Error: Cloned path '$customerRepoPath' does not exist. Please verify the repository URL and credentials."
+    }
+    
+    # Set branch for testing purposes only if cloning succeeds
+    Set-Location -Path $customerRepoPath
+    git switch "Environment-Staging"
 
-
-
-Write-Host -Object "22oobtaining customer repository..."
-
-# Encode the username and PAT for the Authorization header
-$authString = "user:$DevOpsToken"
-$bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
-$base64Auth = [System.Convert]::ToBase64String($bytes)
-
-# Construct the Git repository URL without credentials
-$gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
-
-Write-Host -Object "Cloning the repository: $gitRepoUrl..."
-
-# Perform the git clone with the extraheader
-git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
-
-# Verify the clone path exists after running the command
-$customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
-if (!(Test-Path -Path $customerRepoPath)) {
-    throw "Error: Cloned path '$customerRepoPath' does not exist. Please verify the repository URL and credentials."
-}
-
-# Set branch for testing purposes only if cloning succeeds
-Set-Location -Path $customerRepoPath
-git switch "Environment-Staging"
-
-
+    # <-FF 
     
     $envFile = Get-Content -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo\Environment-Staging\$customerfile" | ConvertFrom-Json
     $envFile.Apps | ForEach-Object {"App: $($_.App); Branch: $($_.Branch); Tag: $($_.Tag)"}
