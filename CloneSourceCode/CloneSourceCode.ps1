@@ -12,6 +12,8 @@ $script:envInput = $ENV:repoName + "/" + $ENV:envInput + ".json"
 $DevOpsUser = $gitHubSecrets.AZDEVOPSUSER
 $DevOpsToken = $gitHubSecrets.AZDEVOPSTOKEN
 
+Write-Host -Object "QQQ user : $DevOpsUser"
+
 # git config
 git config --global user.email "$($gitHubSecrets.AZDEVOPSUSER)@inecta.com"
 git config --global user.name "$($gitHubSecrets.AZDEVOPSUSER)"
