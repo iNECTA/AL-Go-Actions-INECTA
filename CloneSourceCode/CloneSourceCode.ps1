@@ -50,6 +50,8 @@ try {
  #   git switch "Environment-Staging"
 
 
+ Write-Host -Object "Oooobtaining customer repository..."
+
 # Assuming $DevOpsUser and $DevOpsToken are correctly set in your GitHub Secrets
 $encodedDevOpsToken = [System.Web.HttpUtility]::UrlEncode($DevOpsToken) 
 
