@@ -39,13 +39,46 @@ try {
     $customerrepo = $envInput.Split('/') | Select-Object -First 1
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
-    Write-Host -Object "Running this: it clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $customerrepo)..."
-    git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $customerrepo)
-    # set branch for testing purpose
-    Set-Location -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo"
-    git switch "Environment-Staging"
+
+
+
+
+
+ #   git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $customerrepo)
+ #   # set branch for testing purpose
+ #   Set-Location -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo"
+ #   git switch "Environment-Staging"
+
+
+# Assuming $DevOpsUser and $DevOpsToken are correctly set in your GitHub Secrets
+$encodedDevOpsToken = [System.Web.HttpUtility]::UrlEncode($DevOpsToken) 
+
+# Construct the Git repository URL properly
+$gitRepoUrl = "https://$($DevOpsUser)@inecta.com:$encodedDevOpsToken@dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
+
+Write-Host -Object "Cloning the repository: $gitRepoUrl..."
+git clone $gitRepoUrl
+
+# Verify the clone path exists after running the command
+$customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
+if (!(Test-Path -Path $customerRepoPath)) {
+    throw "Error: Cloned path '$customerRepoPath' does not exist. Please verify the repository URL and credentials."
+}
+
+# Set branch for testing purposes only if cloning succeeds
+Set-Location -Path $customerRepoPath
+git switch "Environment-Staging"
+
+
+
+
+
+    
     $envFile = Get-Content -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo\Environment-Staging\$customerfile" | ConvertFrom-Json
     $envFile.Apps | ForEach-Object {"App: $($_.App); Branch: $($_.Branch); Tag: $($_.Tag)"}
+
+
+
 
     # load SCRIPTS repository also
     Set-Location -Path "$home\Desktop"
