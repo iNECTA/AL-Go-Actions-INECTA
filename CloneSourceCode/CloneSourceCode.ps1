@@ -43,37 +43,22 @@ try {
 
 
 
-Write-Host -Object "1ooobtaining customer repository..."
-# Encode username and token
-$encodedDevOpsUser = [System.Web.HttpUtility]::UrlEncode($DevOpsUser)
-$encodedDevOpsToken = [System.Web.HttpUtility]::UrlEncode($DevOpsToken)
-
-# Configure Git credentials
-git config --global credential.helper store
-# echo "https://$encodedDevOpsUser:$encodedDevOpsToken@dev.azure.com" | git credential approve
-
-# Simplified clone command
-git clone "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
 
 
+Write-Host -Object "22oobtaining customer repository..."
 
+# Encode the username and PAT for the Authorization header
+$authString = "user:$DevOpsToken"
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
+$base64Auth = [System.Convert]::ToBase64String($bytes)
 
- #   git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + $customerrepo)
- #   # set branch for testing purpose
- #   Set-Location -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo"
- #   git switch "Environment-Staging"
+# Construct the Git repository URL without credentials
+$gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
 
+Write-Host -Object "Cloning the repository: $gitRepoUrl..."
 
- Write-Host -Object "Oooobtaining customer repository..."
-
-# Assuming $DevOpsUser and $DevOpsToken are correctly set in your GitHub Secrets
-$encodedDevOpsToken = [System.Web.HttpUtility]::UrlEncode($DevOpsToken) 
-
-# Construct the Git repository URL properly
-#$gitRepoUrl = "https://$($DevOpsUser)@inecta.com:$encodedDevOpsToken@dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
-
-#Write-Host -Object "Cloning the repository: $gitRepoUrl..."
-#git clone $gitRepoUrl
+# Perform the git clone with the extraheader
+git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
 
 # Verify the clone path exists after running the command
 $customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
@@ -84,9 +69,6 @@ if (!(Test-Path -Path $customerRepoPath)) {
 # Set branch for testing purposes only if cloning succeeds
 Set-Location -Path $customerRepoPath
 git switch "Environment-Staging"
-
-
-
 
 
     
