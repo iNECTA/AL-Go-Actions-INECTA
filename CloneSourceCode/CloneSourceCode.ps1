@@ -43,6 +43,18 @@ try {
 
 
 
+Write-Host -Object "1ooobtaining customer repository..."
+# Encode username and token
+$encodedDevOpsUser = [System.Web.HttpUtility]::UrlEncode($DevOpsUser)
+$encodedDevOpsToken = [System.Web.HttpUtility]::UrlEncode($DevOpsToken)
+
+# Configure Git credentials
+git config --global credential.helper store
+echo "https://$encodedDevOpsUser:$encodedDevOpsToken@dev.azure.com" | git credential approve
+
+# Simplified clone command
+git clone "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
+
 
 
 
