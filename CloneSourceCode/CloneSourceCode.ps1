@@ -75,9 +75,6 @@ try {
     $envFile = Get-Content -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo\Environment-Staging\$customerfile" | ConvertFrom-Json
     $envFile.Apps | ForEach-Object {"App: $($_.App); Branch: $($_.Branch); Tag: $($_.Tag)"}
 
-
-
-
     # load SCRIPTS repository also
 
     $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/SCRIPTS"
@@ -87,8 +84,7 @@ try {
     Write-Host -Object "Cloning the repository: $gitRepoUrl..."
     
     # Perform the git clone with the extraheader
-    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
-    
+    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl  
     #git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + "SCRIPTS")
 
     # set loadsimp.config
@@ -129,8 +125,6 @@ try {
         }
     }
    
-    
-
     # clean up .git folders
     $envFile.Apps | ForEach-Object {
         Write-Host -Object "Adding $($_.App)$($_.Branch)..."
@@ -138,8 +132,6 @@ try {
         Copy-Item -Path "$baseFolder\inecta-apps\$($_.App)$($_.Branch)" -Destination $baseFolder -Recurse -Force
     }
     
-   
-
     # clean up repo
     Remove-Item -Path "$baseFolder\inecta-apps" -Recurse -Force -ErrorAction SilentlyContinue
     
