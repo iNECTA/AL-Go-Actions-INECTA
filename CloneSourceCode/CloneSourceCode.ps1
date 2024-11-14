@@ -43,31 +43,30 @@ try {
 
     # -> FF
 
-    Write-Host -Object "Obtaining customer repository (v1.03)..."
+    Write-Host -Object "Obtaining customer repository..."
     
     # Encode the username and PAT for the Authorization header
-    $authString = "${DevOpsUser}:${DevOpsToken}"
+    $authString = "user:$DevOpsToken"
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
     $base64Auth = [System.Convert]::ToBase64String($bytes)
     
     # Construct the Git repository URL without credentials
-    $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/${customerrepo}"
+    $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
     
     Write-Host -Object "Cloning the repository: $gitRepoUrl..."
     
-    # Perform the git clone with the correct extraHeader
-    git -c http.extraHeader="Authorization: Basic $base64Auth" clone $gitRepoUrl
+    # Perform the git clone with the extraheader
+    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
     
     # Verify the clone path exists after running the command
-    $customerRepoPath = "${baseFolder}\inecta-apps\customer-repo\${customerrepo}"
+    $customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
     if (!(Test-Path -Path $customerRepoPath)) {
-        throw "Error: Cloned path '${customerRepoPath}' does not exist. Please verify the repository URL and credentials."
+        throw "Error: Cloned path '$customerRepoPath' does not exist. Please verify the repository URL and credentials."
     }
     
-    # Switch to the specific branch after successful cloning
+    # Set branch for testing purposes only if cloning succeeds
     Set-Location -Path $customerRepoPath
     git switch "Environment-Staging"
-
 
     # <-FF 
     
