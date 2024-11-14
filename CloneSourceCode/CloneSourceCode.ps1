@@ -42,8 +42,6 @@ try {
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
     # -> FF
-
-    Write-Host -Object "Obtaining customer repository..."
     
     # Encode the username and PAT for the Authorization header
     $authString = $($gitHubSecrets.AZDEVOPSTOKEN)
