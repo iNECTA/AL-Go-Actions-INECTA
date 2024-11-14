@@ -12,7 +12,7 @@ $script:envInput = $ENV:repoName + "/" + $ENV:envInput + ".json"
 $DevOpsUser = $gitHubSecrets.AZDEVOPSUSER
 $DevOpsToken = $gitHubSecrets.AZDEVOPSTOKEN
 
-Write-Host -Object "QQQ user (v1.01) : $DevOpsUser"
+Write-Host -Object "User (v1.01) : $DevOpsUser"
 
 # git config
 git config --global user.email "$($gitHubSecrets.AZDEVOPSUSER)@inecta.com"
@@ -42,22 +42,18 @@ try {
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
     # -> FF
-    Write-Host -Object "Obtaining customer repository (V1.01)..."
-
-    # Encode the username and PAT for the Authorization header
-
-    $authString = "${DevOpsUser}:${DevOpsToken}"
-
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
-    $base64Auth = [System.Convert]::ToBase64String($bytes)
+    Write-Host -Object "Obtaining customer repository (V1.02)..."
     
-    # Construct the Git repository URL without credentials
-    $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
+    # Set the credential helper for Git to use non-interactive authentication
+    git config --global credential.helper store
+    
+    # Construct the Git repository URL in the form that Git expects for non-interactive authentication
+    $gitRepoUrl = "https://$DevOpsUser:$DevOpsToken@dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
     
     Write-Host -Object "Cloning the repository: $gitRepoUrl..."
     
-    # Perform the git clone with the correct extraHeader
-    git -c http.extraHeader="Authorization: Basic $base64Auth" clone $gitRepoUrl
+    # Clone the repository using the configured credential helper
+    git clone $gitRepoUrl
     
     # Verify the clone path exists after running the command
     $customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
@@ -65,9 +61,10 @@ try {
         throw "Error: Cloned path '$customerRepoPath' does not exist. Please verify the repository URL and credentials."
     }
     
-    # Set branch for testing purposes only if cloning succeeds
+    # Switch to the specific branch after successful cloning
     Set-Location -Path $customerRepoPath
     git switch "Environment-Staging"
+
 
     # <-FF 
     
