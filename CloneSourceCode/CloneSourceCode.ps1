@@ -12,9 +12,6 @@ $script:envInput = $ENV:repoName + "/" + $ENV:envInput + ".json"
 $DevOpsUser = $gitHubSecrets.AZDEVOPSUSER
 $DevOpsToken = $gitHubSecrets.AZDEVOPSTOKEN
 
-$DevOpsUser = "fridrik@inecta.com"
-$DevOpsToken = "3v9ybfN940KDrVTBCdpRu6d7mFx7bG99tLYRMjRFzVLF62tGgRL3JQQJ99AKACAAAAAa0abyAAASAZDOW66E"
-
 Write-Host -Object "Clonse Source Code (v1.03)"
 
 # git config
