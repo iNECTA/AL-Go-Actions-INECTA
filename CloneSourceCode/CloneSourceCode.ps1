@@ -12,7 +12,7 @@ $script:envInput = $ENV:repoName + "/" + $ENV:envInput + ".json"
 $DevOpsUser = $gitHubSecrets.AZDEVOPSUSER
 $DevOpsToken = $gitHubSecrets.AZDEVOPSTOKEN
 
-Write-Host -Object "User (v1.01) : $DevOpsUser"
+Write-Host -Object "User (v1.02) : $DevOpsUser"
 
 # git config
 git config --global user.email "$($gitHubSecrets.AZDEVOPSUSER)@inecta.com"
@@ -42,17 +42,15 @@ try {
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
     # -> FF
+
     Write-Host -Object "Obtaining customer repository (V1.02)..."
-    
-    # Set the credential helper for Git to use non-interactive authentication
-    git config --global credential.helper store
-    
-    # Construct the Git repository URL in the form that Git expects for non-interactive authentication
-    $gitRepoUrl = "https://$DevOpsUser:$DevOpsToken@dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
+
+    # Construct the Git repository URL without credentials
+    $gitRepoUrl = "https://${DevOpsUser}:${DevOpsToken}@dev.azure.com/INECTA/PROJECTS/_git/$customerrepo"
     
     Write-Host -Object "Cloning the repository: $gitRepoUrl..."
     
-    # Clone the repository using the configured credential helper
+    # Perform the git clone
     git clone $gitRepoUrl
     
     # Verify the clone path exists after running the command
@@ -61,10 +59,9 @@ try {
         throw "Error: Cloned path '$customerRepoPath' does not exist. Please verify the repository URL and credentials."
     }
     
-    # Switch to the specific branch after successful cloning
+    # Set branch for testing purposes only if cloning succeeds
     Set-Location -Path $customerRepoPath
     git switch "Environment-Staging"
-
 
     # <-FF 
     
