@@ -46,7 +46,7 @@ try {
     Write-Host -Object "Obtaining customer repository..."
     
     # Encode the username and PAT for the Authorization header
-    $authString = ":$AZDEVOPSTOKEN"
+    $authString = $($gitHubSecrets.AZDEVOPSTOKEN)"  
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
     $base64Auth = [System.Convert]::ToBase64String($bytes)
     
