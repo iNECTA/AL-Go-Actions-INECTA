@@ -42,11 +42,10 @@ try {
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
     # -> FF
+    Write-Host -Object "Obtaining customer repository (V1.01)..."
 
-    Write-Host -Object "Obtaining customer repository..."
-    
     # Encode the username and PAT for the Authorization header
-    $authString = "user:$DevOpsToken"
+    $authString = "$DevOpsUser:$DevOpsToken"
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
     $base64Auth = [System.Convert]::ToBase64String($bytes)
     
@@ -55,8 +54,8 @@ try {
     
     Write-Host -Object "Cloning the repository: $gitRepoUrl..."
     
-    # Perform the git clone with the extraheader
-    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
+    # Perform the git clone with the correct extraHeader
+    git -c http.extraHeader="Authorization: Basic $base64Auth" clone $gitRepoUrl
     
     # Verify the clone path exists after running the command
     $customerRepoPath = "$baseFolder\inecta-apps\customer-repo\$customerrepo"
