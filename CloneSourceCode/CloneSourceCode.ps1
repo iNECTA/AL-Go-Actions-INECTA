@@ -45,7 +45,9 @@ try {
 
     # Encode the username and PAT for the Authorization header
     #$authString = "user:$DevOpsToken"
-    $authString = $gitHubSecrets.AZDEVOPSTOKEN
+    #$authString = $gitHubSecrets.AZDEVOPSTOKEN
+    $authString = "$DevOpsUser:$DevOpsToken"
+    
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
     $base64Auth = [System.Convert]::ToBase64String($bytes)
     
