@@ -45,7 +45,9 @@ try {
     Write-Host -Object "Obtaining customer repository (V1.01)..."
 
     # Encode the username and PAT for the Authorization header
-    $authString = "$DevOpsUser:$DevOpsToken"
+
+    $authString = "${DevOpsUser}:${DevOpsToken}"
+
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
     $base64Auth = [System.Convert]::ToBase64String($bytes)
     
