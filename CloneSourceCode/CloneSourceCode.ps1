@@ -79,8 +79,17 @@ try {
 
 
     # load SCRIPTS repository also
+
+    $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/SCRIPTS"
+
     Set-Location -Path "$home\Desktop"
-    git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + "SCRIPTS")
+
+    Write-Host -Object "Cloning the repository: $gitRepoUrl..."
+    
+    # Perform the git clone with the extraheader
+    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
+    
+    #git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + "SCRIPTS")
 
     # set loadsimp.config
     Write-Host -Object "Creating LoadSIMP.config..."
