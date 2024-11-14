@@ -42,9 +42,10 @@ try {
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
     # -> FF
-    
+
     # Encode the username and PAT for the Authorization header
-    $authString = $($gitHubSecrets.AZDEVOPSTOKEN)
+    #$authString = "user:$DevOpsToken"
+    $authString = $gitHubSecrets.AZDEVOPSTOKEN
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
     $base64Auth = [System.Convert]::ToBase64String($bytes)
     
