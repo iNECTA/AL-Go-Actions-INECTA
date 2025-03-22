@@ -4,6 +4,15 @@ Set-StrictMode -Version 2.0
 $telemetryScope = $null
 $bcContainerHelperPath = $null
 
+# Add this function to sanitize version numbers
+function Sanitize-VersionNumber {
+    param (
+        [string]$version
+    )
+    # Remove any non-numeric characters except periods
+    return $version -replace "[^0-9.]", ""
+}
+
 # get github secrets
 $script:gitHubSecrets = $env:secrets | ConvertFrom-Json
 $script:envInput = $ENV:repoName + "/" + $ENV:envInput + ".json"
@@ -12,14 +21,13 @@ $script:envInput = $ENV:repoName + "/" + $ENV:envInput + ".json"
 $DevOpsUser = $gitHubSecrets.AZDEVOPSUSER
 $DevOpsToken = $gitHubSecrets.AZDEVOPSTOKEN
 
-Write-Host -Object "Clonse Source Code (v1.03)"
+Write-Host -Object "Clone Source Code (v1.04)"
 
 # git config
 git config --global user.email "$($gitHubSecrets.AZDEVOPSUSER)@inecta.com"
 git config --global user.name "$($gitHubSecrets.AZDEVOPSUSER)"
 
 try {
-
     # import helper function and download bccontainerhelper
     . (Join-Path -Path $PSScriptRoot -ChildPath "..\AL-Go-Helper.ps1" -Resolve)
     $baseFolder = $ENV:GITHUB_WORKSPACE
@@ -41,12 +49,7 @@ try {
     $customerrepo = $envInput.Split('/') | Select-Object -First 1
     $customerfile = $envInput.Split('/') | Select-Object -First 1 -Skip 1
 
-    # -> FF
-
     # Encode the username and PAT for the Authorization header
-    #$authString = "user:$DevOpsToken"
-    #$authString = $gitHubSecrets.AZDEVOPSTOKEN
-    #$authString = "$DevOpsUser:$DevOpsToken"
     $authString = "${DevOpsUser}:${DevOpsToken}"
     
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
@@ -69,14 +72,11 @@ try {
     # Set branch for testing purposes only if cloning succeeds
     Set-Location -Path $customerRepoPath
     git switch "Environment-Staging"
-
-    # <-FF 
     
     $envFile = Get-Content -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo\Environment-Staging\$customerfile" | ConvertFrom-Json
     $envFile.Apps | ForEach-Object {"App: $($_.App); Branch: $($_.Branch); Tag: $($_.Tag)"}
 
     # load SCRIPTS repository also
-
     $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/SCRIPTS"
 
     Set-Location -Path "$home\Desktop"
@@ -84,9 +84,8 @@ try {
     Write-Host -Object "Cloning the repository: $gitRepoUrl..."
     
     # Perform the git clone with the extraheader
-    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl  
-    #git clone ("https://$DevOpsUser%40inecta.com:" + $DevOpsToken + "@dev.azure.com/INECTA/PROJECTS/_git/" + "SCRIPTS")
-
+    git -c http.extraheader="Authorization: Basic $base64Auth" clone $gitRepoUrl
+    
     # set loadsimp.config
     Write-Host -Object "Creating LoadSIMP.config..."
     Copy-Item -Path "$home\Desktop\SCRIPTS\LoadSIMP - SAMPLE.config" -Destination "$home\Desktop\SCRIPTS\LoadSIMP.config" -Force
@@ -105,23 +104,31 @@ try {
     . "$home\Desktop\SCRIPTS\System-Scripts\Create-ReleaseWithTag.ps1"
     $ErrorActionPreference = "Stop"
 
-  
-
     # run get-app
     $envFile.Apps | ForEach-Object {
         $jsonvalue = $_
-        #Get-App -simp $_.App -branch $_.Branch -Tag $_.Tag -cloneType "shallow"
+        
+        # Debug output of original values
+        Write-Host "Original App: $($_.App), Branch: $($_.Branch), Tag: $($_.Tag)" -ForegroundColor Yellow
+        
+        # Pass branch and tag values as-is to Get-App, which clones correctly
         Get-App -simp $_.App -branch $_.Branch -Tag $_.Tag 
-        Move-Item -Path "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)" -Destination "$baseFolder\inecta-apps\" -Force
+        
+        # Move the folder - use the branch name exactly as provided 
+        $sourceFolder = "$ENV:ProgramData\BcContainerHelper\INECTA\$($_.App)$($_.Branch)"
+        $destinationFolder = "$baseFolder\inecta-apps\$($_.App)$($_.Branch)"
+        
+        Write-Host "Moving from: $sourceFolder to: $destinationFolder" -ForegroundColor Cyan
+        Move-Item -Path $sourceFolder -Destination "$baseFolder\inecta-apps\" -Force
+        
         Write-Host -ForegroundColor Yellow -Object "Renumbering files..."
         $files = Get-ChildItem -Path "$baseFolder\inecta-apps\$($_.App)$($_.Branch)" -Include *.xml, *.json, *.al -Recurse
         foreach ($file in $files) {
-        (Get-Content -Path $file.PSPath) | Foreach-Object {
+            (Get-Content -Path $file.PSPath) | Foreach-Object {
                 $_ -replace "3700", "5" `
                     -replace "3701", "6" `
                     -replace "3711", "6" `
             } | Set-Content -Path $file.PSPath
-            #Write-Host -ForegroundColor Green -Object "File changed : $($file.Name)"
         }
     }
    
@@ -139,10 +146,7 @@ try {
     Write-Host -Object "Updating AL-Go settings.json file apps..."
     
     # read the apps to list
-    # $AppFolders = @($envFile.Apps | ForEach-Object {$($_.App + "/app") })
-    #$AppFolders = ($envFile.Apps | ForEach-Object {$($_.App + "/app") }) -join ','
     $AppFolders = $envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/app")}
-    #$TestFolders = $envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/test")}
     $TestFolders = @()
     
     # Write to the AL-GO/setting.JSON file
@@ -162,23 +166,68 @@ try {
     
     # update al-go-settings json
     Write-Host -Object "Updating AL-Go-Settings.json file apps..."
-    #$algosettingsjson | Add-Member -NotePropertyName appFolders -NotePropertyValue $($envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/app") }) -Force
     $algosettingsjson | Add-Member -NotePropertyName appFolders -NotePropertyValue (@($envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/app") })) -Force
     
-    Write-Host -ForegroundColor Yellow -Object "Sending some message 1..$algosettingsjson.."
+    Write-Host -ForegroundColor Yellow -Object "Configuring versioning strategy..."
 
+    # *** KEY FIX: Sanitize the version number from envTag ***
+    $originalEnvTag = $ENV:envTag
+    Write-Host "Original envTag: $originalEnvTag" -ForegroundColor Cyan
+    
+    # Get the version parts
+    $versionParts = $originalEnvTag.Split('.')
+    $sanitizedVersionParts = @()
+    
+    # Sanitize each part of the version
+    foreach ($part in $versionParts) {
+        $sanitizedPart = $part -replace "[^0-9]", ""
+        $sanitizedVersionParts += $sanitizedPart
+    }
+    
+    # Reconstruct the version with at least 2 parts
+    $sanitizedVersion = ($sanitizedVersionParts | Select-Object -First 2) -join "."
+    
+    Write-Host "Sanitized version: $sanitizedVersion" -ForegroundColor Green
+    
+    # Update settings with sanitized version
     $algosettingsjson | Add-Member -NotePropertyName versioningStrategy -NotePropertyValue $([System.Int32]15) -Force
-    $algosettingsjson | Add-Member -NotePropertyName repoVersion -NotePropertyValue $((($ENV:envTag).Split('.') | Select-Object -First 2) -join '.') -Force
+    $algosettingsjson | Add-Member -NotePropertyName repoVersion -NotePropertyValue $sanitizedVersion -Force
     $algosettingsjson | ConvertTo-Json -Depth 64 | Set-Content -Path "$baseFolder\.github\AL-Go-Settings.json"
     
-    Write-Host -ForegroundColor Yellow -Object "Sending some message 2..$algosettingsjson.."
+    Write-Host -ForegroundColor Green -Object "Successfully updated AL-Go-Settings.json"
+
+    # Check and update app.json files to ensure versions are sanitized
+    $envFile.Apps | ForEach-Object {
+        $appFolder = "$baseFolder\$($_.App)$($_.Branch)"
+        $appJsonPath = "$appFolder\app\app.json"
+        
+        if (Test-Path $appJsonPath) {
+            Write-Host "Checking app.json in $appJsonPath" -ForegroundColor Yellow
+            $appJson = Get-Content -Path $appJsonPath | ConvertFrom-Json
+            
+            # Check if version contains non-numeric characters
+            if ($appJson.version -match "[^0-9.]") {
+                Write-Host "Found non-numeric characters in version: $($appJson.version)" -ForegroundColor Red
+                
+                # Sanitize the version
+                $appJson.version = Sanitize-VersionNumber -version $appJson.version
+                Write-Host "Sanitized version: $($appJson.version)" -ForegroundColor Green
+                
+                # Save the updated app.json
+                $appJson | ConvertTo-Json -Depth 32 | Set-Content -Path $appJsonPath -Force
+                Write-Host "Updated app.json with sanitized version" -ForegroundColor Green
+            }
+            else {
+                Write-Host "Version is already numeric: $($appJson.version)" -ForegroundColor Green
+            }
+        }
+    }
 
     # merge the changes to customer repository
     Set-Location -Path $baseFolder
     git add .
     git commit --message "app folders update" --quiet
     git push
-
 }
 catch {
     OutputError -message $_.Exception.Message
