@@ -74,7 +74,7 @@ try {
     git switch "Environment-Staging"
     
     $envFile = Get-Content -Path "$baseFolder\inecta-apps\customer-repo\$customerrepo\Environment-Staging\$customerfile" | ConvertFrom-Json
-    $envFile.Apps | ForEach-Object {"App: $($_.App); Branch: $($_.Branch); Tag: $($_.Tag)"}
+    $envFile.Apps | ForEach-Object { "App: $($_.App); Branch: $($_.Branch); Tag: $($_.Tag)" }
 
     # load SCRIPTS repository also
     $gitRepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/SCRIPTS"
@@ -146,27 +146,28 @@ try {
     Write-Host -Object "Updating AL-Go settings.json file apps..."
     
     # read the apps to list
-    $AppFolders = $envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/app")}
+    $AppFolders = $envFile.Apps | ForEach-Object { $($_.App + $_.Branch + "/app") }
     $TestFolders = @()
     
     # Write to the AL-GO/setting.JSON file
     $settingsJson = @{
-        country = "us"
-        appFolders = $AppFolders
-        testFolders = $TestFolders        
-        bcptTestFolders = @()
-        enableUICop = $true
-        enableCodeCop = $true
+        country                     = "us"
+        artifact                    = "//25.5//" # TODO: remove hardcoding
+        appFolders                  = $AppFolders
+        testFolders                 = $TestFolders        
+        bcptTestFolders             = @()
+        enableUICop                 = $true
+        enableCodeCop               = $true
         enablePerTenantExtensionCop = $true
-        alwaysBuildAllProjects = $false
-        skipUpgrade = $true
-        doNotRunTests = $true
+        alwaysBuildAllProjects      = $false
+        skipUpgrade                 = $true
+        doNotRunTests               = $true
     }
     $settingsJson | ConvertTo-Json -Depth 64 | Set-Content -Path "$baseFolder\.AL-Go\settings.json"
     
     # update al-go-settings json
     Write-Host -Object "Updating AL-Go-Settings.json file apps..."
-    $algosettingsjson | Add-Member -NotePropertyName appFolders -NotePropertyValue (@($envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/app") })) -Force
+    $algosettingsjson | Add-Member -NotePropertyName appFolders -NotePropertyValue (@($envFile.Apps | ForEach-Object { $($_.App + $_.Branch + "/app") })) -Force
     
     Write-Host -ForegroundColor Yellow -Object "Configuring versioning strategy..."
 
