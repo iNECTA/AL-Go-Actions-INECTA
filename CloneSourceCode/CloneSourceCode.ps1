@@ -100,7 +100,7 @@ try {
     New-Item -Path "$ENV:ProgramData" -Name "BcContainerHelper\INECTA" -ItemType Directory -Force | Out-Null
     "success" | Out-File -FilePath "$ENV:ProgramData\BcContainerHelper\INECTA\SIMPMgmtUpdate.log" -NoNewline -Force
     $ErrorActionPreference = "Continue"
-    Set-Location -Path "$home\desktop\SCRIPTS"; . ./Simpmgmt.ps1
+    Set-Location -Path "$home\desktop\SCRIPTS"
     . "$home\Desktop\SCRIPTS\start.ps1"
     $ErrorActionPreference = "Stop"
 
