@@ -101,7 +101,7 @@ try {
     "success" | Out-File -FilePath "$ENV:ProgramData\BcContainerHelper\INECTA\SIMPMgmtUpdate.log" -NoNewline -Force
     $ErrorActionPreference = "Continue"
     Set-Location -Path "$home\desktop\SCRIPTS"; . ./Simpmgmt.ps1
-    . "$home\Desktop\SCRIPTS\System-Scripts\Create-ReleaseWithTag.ps1"
+    . "$home\Desktop\SCRIPTS\start.ps1"
     $ErrorActionPreference = "Stop"
 
     # run get-app
