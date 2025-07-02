@@ -261,7 +261,7 @@ function DownloadAndImportBcContainerHelper {
                 $webclient.DownloadFile("https://bccontainerhelper.azureedge.net/public/$($BcContainerHelperVersion).zip", "$tempName.zip")
             }
             catch {
-                $webclient.DownloadFile("https://bccontainerhelper.blob.core.windows.net/public/$($BcContainerHelperVersion).zip", "$tempName.zip")        
+                $webclient.DownloadFile("https://bccontainerhelper-addgd5gzaxf9fneh.b02.azurefd.net/public/$($BcContainerHelperVersion).zip", "$tempName.zip")        
             }
         }
         Expand-7zipArchive -Path "$tempName.zip" -DestinationPath $tempName
