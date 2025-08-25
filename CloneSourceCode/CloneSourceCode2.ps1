@@ -114,7 +114,7 @@ try {
     # Write to the AL-GO/setting.JSON file
     $settingsJson = @{
         country                     = "us"
-        artifact                    = "//25.5//" # TODO: remove hardcoding
+        artifact                    = "//26//" # TODO: remove hardcoding
         appFolders                  = $AppFolders
         testFolders                 = $TestFolders        
         bcptTestFolders             = @()
