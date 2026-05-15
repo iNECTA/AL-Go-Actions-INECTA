@@ -1,0 +1,242 @@
+name: " Publish To Environment"
+
+on:
+  workflow_call:
+    inputs:
+      appVersion:
+        description: App version to deploy to environment(s) (current, prerelease, draft, latest or version number)
+        required: false
+        type: string
+        default: "current"
+      environmentName:
+        description: Environment mask to receive the new version (* for all, PROD* for all environments starting with PROD)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+defaults:
+  run:
+    shell: powershell
+
+env:
+  ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
+  ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
+
+jobs:
+  Initialization:
+    runs-on: [windows-latest]
+    outputs:
+      telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
+      settings: ${{ steps.ReadSettings.outputs.SettingsJson }}
+      environments: ${{ steps.ReadSettings.outputs.EnvironmentsJson }}
+      environmentCount: ${{ steps.ReadSettings.outputs.EnvironmentCount }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Initialize the workflow
+        id: init
+        uses: iNECTA/AL-Go-Actions/WorkflowInitialize@v2.4
+        with:
+          shell: powershell
+          eventId: "DO0097"
+
+      - name: Read settings
+        id: ReadSettings
+        uses: iNECTA/AL-Go-Actions/ReadSettings@v2.4
+        with:
+          shell: powershell
+          parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
+          getEnvironments: ${{ inputs.environmentName }}
+          includeProduction: "Y"
+
+  Deploy:
+    needs: [Initialization]
+    if: ${{ needs.Initialization.outputs.environmentCount > 0 }}
+    strategy: ${{ fromJson(needs.Initialization.outputs.environments) }}
+    runs-on: ${{ fromJson(matrix.os) }}
+    name: Deploy to ${{ matrix.environment }}
+    environment:
+      name: ${{ matrix.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: EnvName
+        id: envName
+        run: |
+          $ErrorActionPreference = "STOP"
+          Set-StrictMode -version 2.0
+          $envName = '${{ matrix.environment }}'.split(' ')[0]
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "envName=$envName"
+
+      - name: Read settings
+        uses: iNECTA/AL-Go-Actions/ReadSettings@v2.4
+        with:
+          shell: powershell
+
+      - name: Read secrets
+        uses: iNECTA/AL-Go-Actions/ReadSecrets@v2.4
+        env:
+          secrets: ${{ toJson(secrets) }}
+        with:
+          shell: powershell
+          settingsJson: ${{ env.Settings }}
+          secrets: "${{ steps.envName.outputs.envName }}-AuthContext,${{ steps.envName.outputs.envName }}_AuthContext,AuthContext,${{ steps.envName.outputs.envName }}-EnvironmentName,${{ steps.envName.outputs.envName }}_EnvironmentName,EnvironmentName,projects"
+
+      - name: AuthContext
+        id: authContext
+        run: |
+          $ErrorActionPreference = "STOP"
+          Set-StrictMode -version 2.0
+          $envName = '${{ steps.envName.outputs.envName }}'
+          $deployToSettingStr = [System.Environment]::GetEnvironmentVariable("DeployTo$envName")
+          if ($deployToSettingStr) {
+            $deployToSetting = $deployToSettingStr | ConvertFrom-Json
+          }
+          else {
+            $deployToSetting = [PSCustomObject]@{}
+          }
+          $authContext = $null
+          "$($envName)-AuthContext", "$($envName)_AuthContext", "AuthContext" | ForEach-Object {
+            if (!($authContext)) {
+              $authContext = [System.Environment]::GetEnvironmentVariable($_)
+              if ($authContext) {
+                Write-Host "Using $_ secret as AuthContext"
+              }
+            }
+          }
+          if (!($authContext)) {
+            Write-Host "::Error::No AuthContext provided"
+            exit 1
+          }
+          if (("$deployToSetting" -ne "") -and $deployToSetting.PSObject.Properties.name -eq "EnvironmentName") {
+            $environmentName = $deployToSetting.EnvironmentName
+          }
+          else {
+            $environmentName = $null
+            "$($envName)-EnvironmentName", "$($envName)_EnvironmentName", "EnvironmentName" | ForEach-Object {
+              if (!($environmentName)) {
+                $EnvironmentName = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String([System.Environment]::GetEnvironmentVariable($_)))
+                if ($EnvironmentName) {
+                  Write-Host "Using $_ secret as EnvironmentName"
+                  Write-Host "Please consider using the DeployTo$_ setting instead, where you can specify EnvironmentName, projects and branches"
+                }
+              }
+            }
+          }
+          if (!($environmentName)) {
+            $environmentName = '${{ steps.envName.outputs.envName }}'
+          }
+          $environmentName = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(($environmentName + '${{ matrix.environment }}'.SubString($envName.Length)).ToUpperInvariant()))
+          if (("$deployToSetting" -ne "") -and $deployToSetting.PSObject.Properties.name -eq "projects") {
+            $projects = $deployToSetting.projects
+          }
+          else {
+            $projects = [System.Environment]::GetEnvironmentVariable("$($envName)-projects")
+            if (-not $projects) {
+              $projects = [System.Environment]::GetEnvironmentVariable("$($envName)_Projects")
+              if (-not $projects) {
+                $projects = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String([System.Environment]::GetEnvironmentVariable('projects')))
+              }
+            }
+          }
+          if ($projects -eq '') {
+            $projects = '*'
+          }
+          elseif ($projects -ne '*') {
+            $buildProjects = '${{ needs.Initialization.outputs.projects }}' | ConvertFrom-Json
+            $projects = ($projects.Split(',') | Where-Object { $buildProjects -contains $_ }) -join ','
+          }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "authContext=$authContext"
+          Write-Host "authContext=$authContext"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "environmentName=$environmentName"
+          Write-Host "environmentName=$([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($environmentName)))"
+          Write-Host "environmentName (as Base64)=$environmentName"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "projects=$projects"
+          Write-Host "projects=$projects"
+
+      - name: Deploy
+        uses: iNECTA/AL-Go-Actions/Deploy@v2.4
+        env:
+          AuthContext: ${{ steps.authContext.outputs.authContext }}
+        with:
+          shell: powershell
+          parentTelemetryScopeJson: ${{ needs.Initialization.outputs.telemetryScopeJson }}
+          type: "Publish"
+          projects: ${{ steps.authContext.outputs.projects }}
+          environmentName: ${{ steps.authContext.outputs.environmentName }}
+          artifacts: ${{ inputs.appVersion }}
+
+  WriteEnvironmentFile:
+    needs: Deploy
+    if: ${{ needs.Deploy.result == 'success' }}
+    runs-on: windows-latest
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v3
+
+      - name: Set up Git config
+        run: |
+          git config --global user.email "fridrik@inecta.com"
+          git config --global user.name "Fridrik Fridriksson"
+
+      - name: Clone Azure DevOps repository using http.extraheader
+        shell: pwsh
+        env:
+          AZDEVOPSUSER: ${{ secrets.AZDEVOPSUSER }}
+          AZDEVOPSTOKEN: ${{ secrets.AZDEVOPSTOKEN }}
+        run: |
+          Write-Host "Cloning Azure DevOps repo using http.extraheader..."
+
+          # Prepare the credentials
+          $authString = "$env:AZDEVOPSUSER`:$env:AZDEVOPSTOKEN"
+          $bytes = [System.Text.Encoding]::UTF8.GetBytes($authString)
+          $base64Auth = [System.Convert]::ToBase64String($bytes)
+
+          # Set the repository URL
+          $RepoUrl = "https://dev.azure.com/INECTA/PROJECTS/_git/SCRIPTS"
+
+          # Perform the git clone with the extraheader
+          git -c http.extraheader="Authorization: Basic $base64Auth" clone --depth 1 $RepoUrl azure-devops-repo
+
+          Write-Host "Done."
+
+      - name: List root files and folders in the Azure DevOps repo
+        shell: pwsh
+        run: |
+          Write-Host "Listing root files and folders in the Azure DevOps repo:"
+          Get-ChildItem -Path .\azure-devops-repo -Directory -Name
+
+      - name: Call Write-EnvironmentFileAfterDeployment
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "STOP"
+          Set-StrictMode -version 2.0
+          . .\WriteEnviornmentFilesBackToMasterAfterPipelines.ps1
+          Write-EnvironmentFileAfterDeployment -CustomerApp '${{ github.event.repository.name }}' -Environment '${{ inputs.environmentName }}'
+        env:
+          DEVOPS_ACCESS_TOKEN: ${{ secrets.DEVOPS_ACCESS_TOKEN }}
+          secrets: ${{ toJson(secrets) }}
+
+
+
+
+  PostProcess:
+    if: always()
+    runs-on: [windows-latest]
+    needs: [Initialization, Deploy, WriteEnvironmentFile]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Finalize the workflow
+        id: PostProcess
+        uses: iNECTA/AL-Go-Actions/WorkflowPostProcess@v2.4
+        with:
+          shell: powershell
+          eventId: "DO0097"
+          telemetryScopeJson: ${{ needs.Initialization.outputs.telemetryScopeJson }}

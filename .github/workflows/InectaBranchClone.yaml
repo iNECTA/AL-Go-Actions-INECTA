@@ -1,0 +1,75 @@
+name: Branch Clone
+
+on:
+  workflow_call:
+    inputs:
+      Environment:
+        description: Specify the name of the environment to parse the granules from.
+        required: true
+        type: string
+        default: "untitled"
+      Tag:
+        description: Specify the value of the tag.
+        required: true
+        type: string
+        default: "123.456"
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: PowerShell
+
+jobs:
+  Initialization:
+    runs-on: [windows-latest]
+    outputs:
+      telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Initialize the workflow
+        id: init
+        uses: iNECTA/AL-Go-Actions/WorkflowInitialize@v1.5
+        with:
+          eventId: "DO0091"
+
+  BranchClone:
+    runs-on: [windows-latest]
+    needs: [Initialization]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout AL-Go-Actions-INECTA Repository
+        uses: actions/checkout@v2
+        with:
+          repository: iNECTA/AL-Go-Actions-INECTA
+          path: AL-Go-Actions-INECTA
+
+      - name: Run CloneSourceCode Script
+        shell: pwsh
+        run: |
+          cd ./AL-Go-Actions-INECTA/CloneSourceCode
+          ./CloneSourceCode.ps1
+        env:
+          envInput: ${{ inputs.Environment }}
+          envTag: ${{ inputs.Tag }}
+          repoName: ${{ github.event.repository.name }}
+          secrets: ${{ toJson(secrets) }}
+
+  PostProcess:
+    if: always()
+    runs-on: [windows-latest]
+    needs: [Initialization, BranchClone]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Finalize the workflow
+        uses: iNECTA/AL-Go-Actions/WorkflowPostProcess@v1.5
+        with:
+          eventId: "DO0091"
+          telemetryScopeJson: ${{ needs.Initialization.outputs.telemetryScopeJson }}

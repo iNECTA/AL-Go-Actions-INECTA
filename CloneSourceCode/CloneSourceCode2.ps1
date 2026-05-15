@@ -107,7 +107,7 @@ try {
     # read the apps to list
     # $AppFolders = @($envFile.Apps | ForEach-Object {$($_.App + "/app") })
     #$AppFolders = ($envFile.Apps | ForEach-Object {$($_.App + "/app") }) -join ','
-    $AppFolders = $envFile.Apps | ForEach-Object { $($_.App + $_.Branch + "/app") }
+    $AppFolders = @($envFile.Apps | ForEach-Object { $($_.App + $_.Branch + "/app") })
     #$TestFolders = $envFile.Apps | ForEach-Object {$($_.App + $_.Branch + "/test")}
     $TestFolders = @()
     
