@@ -82,6 +82,7 @@ try {
                 $_ -replace "3700", "5" `
                     -replace "3701", "6" `
                     -replace "3711", "6" `
+                    -replace "1417", "7" `
             } | Set-Content -Path $file.PSPath
             #Write-Host -ForegroundColor Green -Object "File changed : $($file.Name)"
         }
