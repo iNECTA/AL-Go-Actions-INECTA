@@ -1,0 +1,43 @@
+name: Build Workflow
+
+on:
+  workflow_call:
+    inputs:
+      Environment:
+        description: Specify the name of the environment to parse the granules from.
+        required: true
+        type: string
+        default: "untitled"
+      Tag:
+        description: Specify the value of the tag (also used as the release tag).
+        required: true
+        type: string
+        default: "123.456"
+
+permissions:
+  contents: write
+  actions: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  BranchClone:
+    uses: ./.github/workflows/InectaBranchClone.yaml
+    secrets: inherit
+    with:
+      Environment: ${{ inputs.Environment }}
+      Tag: ${{ inputs.Tag }}
+
+  CICD:
+    needs: [BranchClone]
+    uses: ./.github/workflows/CICD.yaml
+    secrets: inherit
+
+  CreateRelease:
+    needs: [CICD]
+    uses: ./.github/workflows/CreateRelease.yaml
+    secrets: inherit
+    with:
+      name: "${{ github.event.repository.name }} ${{ inputs.Environment }} v${{ inputs.Tag }} "
+      tag: ${{ inputs.Tag }}
+      directCommit: "y"
