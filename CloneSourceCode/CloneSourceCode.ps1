@@ -146,8 +146,8 @@ try {
     # update al-go-settings json
     Write-Host -Object "Updating AL-Go settings.json file apps..."
     
-    # read the apps to list
-    $AppFolders = $envFile.Apps | ForEach-Object { $($_.App + $_.Branch + "/app") }
+    # read the apps to list; @() keeps a single app an array, AL-Go rejects appFolders as a string
+    $AppFolders = @($envFile.Apps | ForEach-Object { $($_.App + $_.Branch + "/app") })
     $TestFolders = @()
     
     # Write to the AL-GO/setting.JSON file
